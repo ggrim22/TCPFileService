@@ -62,7 +62,7 @@ public class TCPClient {
     public static void downloadFile(String serverAddress, int serverPort, String fileName) throws IOException {
         SocketChannel channel = SocketChannel.open();
         channel.connect(new InetSocketAddress(serverAddress, serverPort));
-        String request = "D " + fileName + "\n";
+        String request = "D:" + fileName + "\n";
         ByteBuffer buffer = ByteBuffer.wrap(request.getBytes());
         channel.write(buffer);
 
@@ -86,7 +86,7 @@ public class TCPClient {
     public static void listFiles(String serverAddress, int serverPort) throws IOException {
         SocketChannel channel = SocketChannel.open();
         channel.connect(new InetSocketAddress(serverAddress, serverPort));
-        String request = "A ";
+        String request = "A:";
         ByteBuffer buffer = ByteBuffer.wrap(request.getBytes());
         channel.write(buffer);
         channel.shutdownOutput();
@@ -104,7 +104,7 @@ public class TCPClient {
         SocketChannel channel = SocketChannel.open();
         channel.connect(new InetSocketAddress(serverAddress, serverPort));
         File file = new File("ClientFiles/" + fileName);
-        String request = "E " + fileName + "\n";
+        String request = "E:" + fileName + "\n";
         ByteBuffer buffer = ByteBuffer.wrap(request.getBytes());
         channel.write(buffer);
 
@@ -136,7 +136,7 @@ public class TCPClient {
     public static void deleteFile(String serverAddress, int serverPort, String fileName) throws IOException {
         SocketChannel channel = SocketChannel.open();
         channel.connect(new InetSocketAddress(serverAddress, serverPort));
-        String request = "B " + fileName + "\n";
+        String request = "B:" + fileName + "\n";
         ByteBuffer buffer = ByteBuffer.wrap(request.getBytes());
         channel.write(buffer);
         channel.shutdownOutput();
@@ -153,7 +153,7 @@ public class TCPClient {
     public static void renameFile(String serverAddress, int serverPort, String originalFileName, String newFileName) throws IOException {
         SocketChannel channel = SocketChannel.open();
         channel.connect(new InetSocketAddress(serverAddress, serverPort));
-        String request = "C " + originalFileName + " " + newFileName + "\n";
+        String request = "C:" + originalFileName + ":" + newFileName + "\n";
         ByteBuffer buffer = ByteBuffer.wrap(request.getBytes());
         channel.write(buffer);
         channel.shutdownOutput();
