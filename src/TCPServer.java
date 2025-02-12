@@ -19,52 +19,72 @@ public class TCPServer {
 
     public static void handleCommand(SocketChannel clientChannel) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
-        int bytesRead = clientChannel.read(buffer);
-        buffer.flip();
-        byte[] receivedBytes = new byte[bytesRead];
-        buffer.get(receivedBytes);
-        String receivedData = new String(receivedBytes).trim();
 
-        String [] dataArray = receivedData.split(" ", 3);
-        String command = dataArray[0];
-        String fileName = dataArray.length > 1 ? dataArray[1] : "";
-        String newFileName = dataArray.length  > 2 ? dataArray[2] : "";
+        try{
+            int bytesRead = clientChannel.read(buffer);
+            buffer.flip();
+            byte[] receivedBytes = new byte[bytesRead];
+            buffer.get(receivedBytes);
+            String receivedData = new String(receivedBytes).trim();
 
-        switch (command){
-            case "A":
-                listFiles(clientChannel);
-            case "B":
-                deleteFile(clientChannel,fileName);
-            case "C":
-                renameFile(clientChannel, fileName, newFileName);
-            case "D":
-                downloadFile(clientChannel, fileName);
-                break;
-            case "E":
-                uploadFile(clientChannel, fileName);
+            String [] dataArray = receivedData.split(" ", 3);
+            String command = dataArray[0];
+            String fileName = dataArray.length > 1 ? dataArray[1] : "";
+            String newFileName = dataArray.length  > 2 ? dataArray[2] : "";
+
+            switch (command){
+                case "A":
+                    listFiles(clientChannel);
+                    break;
+                case "B":
+                    deleteFile(clientChannel,fileName);
+                    break;
+                case "C":
+                    renameFile(clientChannel, fileName, newFileName);
+                    break;
+                case "D":
+                    downloadFile(clientChannel, fileName);
+                    break;
+                case "E":
+                    uploadFile(clientChannel, fileName);
+                    break;
+            }
+            clientChannel.close();
+        }catch (IOException e){
+            System.err.println("Error handling command: " + e.getMessage());
+            e.printStackTrace();
         }
+
     }
 
     public static void downloadFile(SocketChannel serveChannel, String fileName) throws IOException {
-        while(true){
-            File file = new File("ServerFiles/" + fileName);
-            if(!file.exists()){
-                System.out.println("File doesn't exist");
-            }else{
-                FileInputStream fs = new FileInputStream(file);
-                FileChannel fc = fs.getChannel();
-                ByteBuffer fileContent = ByteBuffer.allocate(1024);
-                int byteRead = 0;
-                do{
-                    byteRead = fc.read(fileContent);
-                    fileContent.flip();
-                    serveChannel.write(fileContent);
-                    fileContent.clear();
-                }while(byteRead >= 0);
-                fs.close();
+        try{
+            while(true){
+                File file = new File("ServerFiles/" + fileName);
+                if(!file.exists()){
+                    System.out.println("File doesn't exist");
+                }else{
+                    FileInputStream fs = new FileInputStream(file);
+                    FileChannel fc = fs.getChannel();
+                    ByteBuffer fileContent = ByteBuffer.allocate(1024);
+                    int byteRead = 0;
+                    do{
+                        byteRead = fc.read(fileContent);
+                        fileContent.flip();
+                        serveChannel.write(fileContent);
+                        fileContent.clear();
+                    }while(byteRead >= 0);
+                    fs.close();
+                }
+                serveChannel.close();
             }
+        }catch (Exception e){
+            String response = "Failed to download";
+            ByteBuffer buffer = ByteBuffer.wrap(response.getBytes());
+            serveChannel.write(buffer);
             serveChannel.close();
         }
+
     }
 
     public static void listFiles(SocketChannel serveChannel) throws IOException {
@@ -116,12 +136,11 @@ public class TCPServer {
         if(file.delete()){
             ByteBuffer successBuffer = ByteBuffer.wrap(success.getBytes());
             serveChannel.write(successBuffer);
-            serveChannel.close();
         }else{
             ByteBuffer failBuffer = ByteBuffer.wrap(fail.getBytes());
             serveChannel.write(failBuffer);
-            serveChannel.close();
         }
+        serveChannel.close();
     }
 
     public static void renameFile(SocketChannel serveChannel, String originalFileName, String newFileName) throws IOException {
@@ -132,11 +151,10 @@ public class TCPServer {
         if(originalFile.renameTo(newFile)){
             ByteBuffer successBuffer = ByteBuffer.wrap(success.getBytes());
             serveChannel.write(successBuffer);
-            serveChannel.close();
         }else{
             ByteBuffer failBuffer = ByteBuffer.wrap(fail.getBytes());
             serveChannel.write(failBuffer);
-            serveChannel.close();
         }
+        serveChannel.close();
     }
 }

@@ -15,36 +15,46 @@ public class TCPClient {
         }
         String serverIP = args[0];
         int serverPort = Integer.parseInt(args[1]);
-        System.out.println("Please type the following letter that corresponds to the command you want:");
-        System.out.println("A: List all files\nB: Delete a file\nC: Rename a file\nD: Download a file\nE: Upload a file");
+        String command = "";
+        while(!(command.equals("Q"))){
+            System.out.println("Please type the following letter that corresponds to the command you want:");
+            System.out.println("A: List all files\nB: Delete a file\nC: Rename a file\nD: Download a file\nE: Upload a file\nQ: Quit");
 
-        Scanner scanner = new Scanner(System.in);
-        String command = scanner.nextLine();
+            Scanner scanner = new Scanner(System.in);
+            command = scanner.nextLine();
 
-        switch (command) {
-            case "A":
-                listFiles(serverIP, serverPort);
-                break;
-            case "B":
-                System.out.println("Please type in the file name you want to delete: ");
-                String deleteFile = scanner.nextLine();
-                deleteFile(serverIP, serverPort, deleteFile);
-                break;
-            case "C":
-                System.out.println("Please type in a file name of the file you want to change: ");
-                String originalFileName = scanner.nextLine();
-                System.out.println("Please type in a new file name: ");
-                String newFileName = scanner.nextLine();
-                renameFile(serverIP, serverPort, originalFileName, newFileName);
-                break;
-            case "D":
-                System.out.println("Please type in a file name: ");
-                String fileName = scanner.nextLine();
-                downloadFile(serverIP, serverPort, fileName);
-            case "E":
-                System.out.println("Please type in the file you want to upload: ");
-                String uploadFile = scanner.nextLine();
-                uploadFile(serverIP, serverPort, uploadFile);
+            switch (command) {
+                case "A":
+                    listFiles(serverIP, serverPort);
+                    break;
+                case "B":
+                    System.out.println("Please type in the file name you want to delete: ");
+                    String deleteFile = scanner.nextLine();
+                    deleteFile(serverIP, serverPort, deleteFile);
+                    break;
+                case "C":
+                    System.out.println("Please type in a file name of the file you want to change: ");
+                    String originalFileName = scanner.nextLine();
+                    System.out.println("Please type in a new file name: ");
+                    String newFileName = scanner.nextLine();
+                    renameFile(serverIP, serverPort, originalFileName, newFileName);
+                    break;
+                case "D":
+                    System.out.println("Please type in a file name: ");
+                    String fileName = scanner.nextLine();
+                    downloadFile(serverIP, serverPort, fileName);
+                    break;
+                case "E":
+                    System.out.println("Please type in the file you want to upload: ");
+                    String uploadFile = scanner.nextLine();
+                    uploadFile(serverIP, serverPort, uploadFile);
+                    break;
+                case "Q":
+                    System.out.println("You have quit the program, goodbye...");
+                    break;
+                default:
+                    System.out.println("Invalid command. Please enter a valid option: <A, B, C, D, E, Q>");
+            }
         }
 
     }
