@@ -59,7 +59,6 @@ public class TCPServer {
 
     public static void downloadFile(SocketChannel serveChannel, String fileName) throws IOException {
         try{
-            while(true){
                 File file = new File("ServerFiles/" + fileName);
                 if(!file.exists()){
                     System.out.println("File doesn't exist");
@@ -77,7 +76,6 @@ public class TCPServer {
                     fs.close();
                 }
                 serveChannel.close();
-            }
         }catch (Exception e){
             String response = "Failed to download";
             ByteBuffer buffer = ByteBuffer.wrap(response.getBytes());
@@ -131,7 +129,7 @@ public class TCPServer {
 
     public static void deleteFile(SocketChannel serveChannel, String fileName) throws IOException {
         File file = new File("ServerFiles/" + fileName);
-        String success = "You have deleted " + fileName;
+        String success = "You have deleted" + fileName;
         String fail = "File deletion failed";
         if(file.delete()){
             ByteBuffer successBuffer = ByteBuffer.wrap(success.getBytes());
