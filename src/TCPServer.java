@@ -27,7 +27,7 @@ public class TCPServer {
             buffer.get(receivedBytes);
             String receivedData = new String(receivedBytes).trim();
 
-            String [] dataArray = receivedData.split(" ", 3);
+            String [] dataArray = receivedData.split(":", 3);
             String command = dataArray[0];
             String fileName = dataArray.length > 1 ? dataArray[1] : "";
             String newFileName = dataArray.length  > 2 ? dataArray[2] : "";
