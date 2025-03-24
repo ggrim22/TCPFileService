@@ -4,20 +4,61 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class TCPServer {
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
         ServerSocketChannel listenChannel = ServerSocketChannel.open();
-
         listenChannel.bind(new InetSocketAddress(3000));
+        ExecutorService es = Executors.newFixedThreadPool(4);
+        Thread inputThread = getThread(listenChannel, es);
+        inputThread.start();
 
-        while(true){
-            SocketChannel clientChannel = listenChannel.accept();
-            handleCommand(clientChannel);
+        // Main loop for handling client connections
+        while (listenChannel.isOpen()) {
+            try {
+                SocketChannel clientChannel = listenChannel.accept();
+                if (clientChannel != null) {
+                    es.submit(new handleCommandTask(clientChannel, es));
+                }
+            } catch (Exception e) {
+                if (!listenChannel.isOpen()) {
+                    System.out.println("Server socket closed, stopping server.");
+                    break;
+                }
+                e.printStackTrace();
+            }
         }
+
+        System.out.println("Server has stopped.");
     }
 
-    public static void handleCommand(SocketChannel clientChannel) throws IOException {
+    private static Thread getThread(ServerSocketChannel listenChannel, ExecutorService es) {
+        Scanner scanner = new Scanner(System.in);
+
+        // Start a separate thread to monitor user input for "Q"
+        Thread inputThread = new Thread(() -> {
+            System.out.println("Type 'Q' to stop the server.");
+            while (true) {
+                String input = scanner.nextLine();
+                if (input.equalsIgnoreCase("Q")) {
+                    System.out.println("Shutting down server...");
+                    try {
+                        listenChannel.close();  // Close server socket to stop accepting new connections
+                        es.shutdown();  // Shutdown executor service
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break;  // Exit the thread
+                }
+            }
+        });
+        return inputThread;
+    }
+
+    public static void handleCommand(SocketChannel clientChannel, ExecutorService es) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
 
         try{
@@ -43,18 +84,69 @@ public class TCPServer {
                     renameFile(clientChannel, fileName, newFileName);
                     break;
                 case "D":
-                    downloadFile(clientChannel, fileName);
+                    //downloadFile(clientChannel, fileName);
+                    es.submit(new DownloadTask(clientChannel, fileName));
                     break;
                 case "E":
-                    uploadFile(clientChannel, fileName);
+                    //uploadFile(clientChannel, fileName);
+                    es.submit(new UploadTask(clientChannel, fileName));
                     break;
             }
-            clientChannel.close();
+            //clientChannel.close();
         }catch (IOException e){
             System.err.println("Error handling command: " + e.getMessage());
             e.printStackTrace();
         }
 
+    }
+
+
+    static class UploadTask implements Runnable{
+        SocketChannel serveChannel;
+        String fileName;
+        public UploadTask(SocketChannel serveChannel, String fileName){
+            this.serveChannel = serveChannel;
+            this.fileName = fileName;
+        }
+        public void run(){
+            try {
+                uploadFile(serveChannel, fileName);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    static class DownloadTask implements Runnable{
+        SocketChannel serveChannel;
+        String fileName;
+        public DownloadTask(SocketChannel serveChannel, String fileName){
+            this.serveChannel = serveChannel;
+            this.fileName = fileName;
+        }
+        public void run(){
+            try {
+                downloadFile(serveChannel, fileName);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    static class handleCommandTask implements Runnable{
+        SocketChannel clientChannel;
+        ExecutorService es;
+        public handleCommandTask(SocketChannel clientChannel, ExecutorService es){
+            this.clientChannel = clientChannel;
+            this.es = es;
+        }
+        public void run(){
+            try {
+                handleCommand(clientChannel, es);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public static void downloadFile(SocketChannel serveChannel, String fileName) throws IOException {
@@ -84,6 +176,7 @@ public class TCPServer {
         }
 
     }
+
 
     public static void listFiles(SocketChannel serveChannel) throws IOException {
         StringBuilder files = new StringBuilder();

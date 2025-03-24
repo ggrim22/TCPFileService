@@ -86,7 +86,7 @@ public class TCPClient {
     public static void listFiles(String serverAddress, int serverPort) throws IOException {
         SocketChannel channel = SocketChannel.open();
         channel.connect(new InetSocketAddress(serverAddress, serverPort));
-        String request = "A:";
+        String request = "A:" + "\n";
         ByteBuffer buffer = ByteBuffer.wrap(request.getBytes());
         channel.write(buffer);
         channel.shutdownOutput();
@@ -153,7 +153,7 @@ public class TCPClient {
     public static void renameFile(String serverAddress, int serverPort, String originalFileName, String newFileName) throws IOException {
         SocketChannel channel = SocketChannel.open();
         channel.connect(new InetSocketAddress(serverAddress, serverPort));
-        String request = "C:" + originalFileName + ":" + newFileName + "\n";
+        String request = "C:" + originalFileName + ":" + newFileName;
         ByteBuffer buffer = ByteBuffer.wrap(request.getBytes());
         channel.write(buffer);
         channel.shutdownOutput();
